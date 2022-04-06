@@ -1,44 +1,144 @@
 [comment]: # (Copyright © 2022, Chris Moser - all rights reserved)
 [comment]: # (Released under the Creative Commons Attribution-ShareAlike 4.0 International License)
 
-# Yuforium Community Federation With Activity Pub
-*Purpose statement here*
+# Yuforium Community Federation With ActivityPub
+*Purpose statement*
+
+## Background
+There is currently no universally adopted method for using ActivityPub to connect community content (forums, groups, etc.).
 
 ## Goals
-- *Standardization*<br>
-  Stay within the existing ActivityPub spec as much as possible
+- **Standardization & Simplicity**<br>
+  Stay within the existing ActivityPub spec as much as possible and keep the implementation simple by adding a minimum amount of overhead
 
-- *Simplicity*<br>
-  Keep implementation simple by adding a minimum amount of overhead
-
-- *Discoverability*<br>
+- **Discoverability**<br>
   Allow authoritative capabilities for discovery while providing an on-ramp to decentralization
 
-- *Integration*<br>
-  Compatibility with existing services  like Mastodon for quick adoption
+- **Integration With Existing ActivityPub Services**<br>
+  Compatibility with services like Mastodon for quick adoption
 
 ## Terminology
-- `Topic` is the building block of Yuforium's federation model, and represents the subject matter of connection, such as as a favorite hobby or interest. It is used as `context` in Yuforium federation.
+The terminology defined here is not expressly used to propose new Object types, but could be...
 
-- `Community` represents an aggregate of people, relationships, and content based on a collection of topics.  It can be an explicit representation or a broader network of connected communities.  It is also be used as a `context` in Yuforium's implementation.
+- `Topic` is the primary building block of Yuforium's federation model, and represents the subject matter of connection, such as as a favorite hobby or interest.
 
-- `Forum`<br>
+- `Community` represents an aggregatation of people, relationships, and content.  Usually this may be centered on various topics,   It can be an explicit representation or a broader network of connected communities.
 
-- `Thread`<br>
-
-## Notes
-- A history of a community should be maintained so that content made in the community represents the `topics` of the community at the time it is made.
+- `Forum` represents a service endpoint that federates community activity and manages a set of users<br>
 
 ## Implementation
+
+### Grouping Content with the Context Field
 Yuforium uses the `context` field for federation, which is described in the Activity Streams `Object` specification as follows:
 
 > The notion of "context" used is intentionally vague. The intended function is to serve as a means of grouping objects and activities that share a common originating context or purpose. An example could be all activities relating to a common project or event.
 
-A community context can be described in various ways.  For example, a community can be centered around discussion of several topics (e.g. a favorite hobby, a sport or team), or it can be centered around a specific group of people such as a neighborhood associaationspecific topics, or even a community itself, Yuforium adds a `/topic` endpoint to provide a shared context for federated communities.
+The `context` field is well suited for federating community content, because the grouping of content is exactly what a Community or a Forum does:
 
-Before we begin, let's clarify that:
-- Yuforium is code and standards, Yuforia.com is a service
-- `@context` is not the same as `context`
+```json
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "id": "https://textiverse.com/object/123456",
+  "type": "Note",
+  "content": "Context groups objects and activities",
+  "context": [
+    {
+      "type": "Actor",
+      "id": "https://yuforium.com/topic/activitypub"
+    }
+  ]
+}
+```
+
+Here we use `Actor` here to define a topic, but it could just as easily be an extension, such as a `Topic`:
+
+```json
+{
+  "@context": "https://yuforium.com/ns/activitypub",
+  "id": "https://textiverse.com/topic/dodgeball",
+  "name": "Dodgeball",
+  "summary": "Anything related to the sport of Dodgeball"
+}
+```
+
+Multiple contexts can be used, enabling cross network federation.  The following `Note` will span across community networks that discuss dodgeball and wrenches:
+
+```json
+{
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "id": "https://textiverse.com/object/5678",
+  "type": "Note",
+  "content": "If you can dodge a wrench, you can dodge a ball!",
+  "context": [
+    {
+      "type": "Topic",
+      "id": "https://yuforium.com/topic/dodgeball"
+    },
+    {
+      "type": "Topic",
+      "id": "https://yuforium.com/topic/wrenches"
+    }
+  ]
+}
+```
+
+Finally, a `Community` encompasses a group of topics.  A community can include information that a topic on its own cannot provide, such as a `Place`, which may be relevant to the community but not to the group of topics it represents:
+
+```json
+{
+  "type": "Community",
+  "@context": "https://www.w3.org/ns/activitystreams",
+  "id": "https://textiverse.com/community/piano-players",
+  "name": "Santa Monica Piano Players",
+  "context": [
+    {
+      "type": "Topic",
+      "id": "https://yuforium.com/topic/music"
+    },
+    {
+      "type": "Topic",
+      "id": "https://yuforium.com/topic/piano-music"
+    }
+  ],
+  "place": {
+    "@context": "https://www.w3.org/ns/activitystreams",
+    "type": "Place",
+    "name": "Santa Monica, CA",
+    "latitude": 34.765,
+    "longitude": -118.832,
+    "radius": 10,
+    "units": "miles"
+  }
+}
+```
+Content created with the given `Community` can be assumed to be relevant to the grouped topics that it represents _at its published time_:
+
+```json
+{
+  "type": "Note",
+  "content": "My favorite piece to play",
+  "context": "https://textiverse.com/community/piano-players",
+  "published": "2022-04-20T03:13:37Z"
+}
+```
+
+### Federation with the Context Field
+
+```json
+{
+  "type": "Service",
+  "name": "Piano Players Forum LA",
+  "id": "https://textiverse.com/forum/piano-players",
+  "context": "https://textiverse.com/community/
+}
+```
+
+#### Topic and Community Followers
+
+### Authoritative Topics
+
+### Non Authoritative Topics
+
 
 _Post to a forum from your Activity Stream by addressing the forum_
 ```json
@@ -50,7 +150,7 @@ _Post to a forum from your Activity Stream by addressing the forum_
   "content": "Hi world!",
   "to": [
     "https://www.w3.org/ns/activitystreams#Public",
-    "https://yuforia.com/forum/anything"
+    "https://textiverse.com/forum/anything"
   ]
 }
 ```
@@ -128,20 +228,9 @@ Without an authoritative context, however, a forum will need to manually `follow
 ### Forums
 Forums are conduits to the larger, distributed community.  They are endpoints that can be a source
 
-
-## Private Communities
-We could use public key encryption to pass content around.
+## Notes
+- A history of a community should be maintained so that content made in the community represents the `topics` of the community at the time it is made.
+- No consideration as yet had been made to <b>Private Communities</b> but we could use public key encryption to pass content around
 
 ## About
 Yuforium is built on the excellent and Angular friendly NestJS framework.
-
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
-
-[travis-image]: https://api.travis-ci.org/nestjs/nest.svg?branch=master
-[travis-url]: https://travis-ci.org/nestjs/nest
-[linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
-[linux-url]: https://travis-ci.org/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
