@@ -2,10 +2,13 @@
 [comment]: # (Released under the Creative Commons Attribution-ShareAlike 4.0 International License)
 
 # Yuforium Community Federation With ActivityPub
-*Purpose statement*
+This document defines standard practices to federate communities using ActivityPub.
 
 ## Background
-There is currently no universally adopted method for using ActivityPub to connect community content (forums, groups, etc.).
+Federation with ActivityPub focuses on a social network model, which uses a user
+
+
+There is no universally adopted method using ActivityPub for the inverse model -  to connect community content (forums, groups, etc.).
 
 ## Goals
 - **Standardization & Simplicity**<br>
@@ -24,7 +27,7 @@ The terminology defined here is not expressly used to propose new Object types, 
 
 - `Community` represents an aggregatation of people, relationships, and content.  Usually this may be centered on various topics,   It can be an explicit representation or a broader network of connected communities.
 
-- `Forum` represents a service endpoint that federates community activity and manages a set of users<br>
+- `Forum` represents a service endpoint that federates community activity and manages a set of users that can post to the forum and broadcast messages out to the larger community.
 
 ## Implementation
 
@@ -33,7 +36,7 @@ Yuforium uses the `context` field for federation, which is described in the Acti
 
 > The notion of "context" used is intentionally vague. The intended function is to serve as a means of grouping objects and activities that share a common originating context or purpose. An example could be all activities relating to a common project or event.
 
-The `context` field is well suited for federating community content, because the grouping of content is exactly what a Community or a Forum does:
+The `context` field is well suited for federating community content, because grouping of content is what a Community or a Forum does.
 
 ```json
 {
@@ -50,7 +53,7 @@ The `context` field is well suited for federating community content, because the
 }
 ```
 
-Here we use `Actor` here to define a topic, but it could just as easily be an extension, such as a `Topic`:
+Here we use `Actor` here to define a topic, but it could just as easily be an additional type, such as a `Topic`:
 
 ```json
 {
@@ -82,7 +85,7 @@ Multiple contexts can be used, enabling cross network federation.  The following
 }
 ```
 
-Finally, a `Community` encompasses a group of topics.  A community can include information that a topic on its own cannot provide, such as a `Place`, which may be relevant to the community but not to the group of topics it represents:
+A `Community` encompasses a group of topics.  A community can include information that a topic on its own cannot provide, such as a `Place`, which may be relevant to the community but not necessarily to the group of topics it represents:
 
 ```json
 {
@@ -111,7 +114,7 @@ Finally, a `Community` encompasses a group of topics.  A community can include i
   }
 }
 ```
-Content created with the given `Community` can be assumed to be relevant to the grouped topics that it represents _at its published time_:
+Content created with the given `Community` may be assumed to be relevant to one or more of the grouped topics specified.  The `published` field would indicate the state of the community at that time, thus a `Community` should manage a history of its relevant topics should they change over time:
 
 ```json
 {
@@ -122,7 +125,21 @@ Content created with the given `Community` can be assumed to be relevant to the 
 }
 ```
 
-### Federation with the Context Field
+Or specific contexts may be appended or modified as needed when submitting content through a instance:
+
+```json
+{
+  "type": "Note",
+  "content": "My favorite piece to play",
+  "context": [
+    "https://textiverse.com/community/piano-players",
+    "https://yuforium.com/topic/sheet-music"
+  ]
+}
+```
+
+### Federation Amongst Instances
+Now that we have defined the purpose of the context field, we can discuss federation across instances using this model.
 
 ```json
 {
