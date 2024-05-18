@@ -17,11 +17,9 @@ This document defines standard practices to federate communities using ActivityP
 ## Terminology
 Terminology in this document is not expressly used to propose new types, and can be represented as `Actor` or `Service` types.  However for clarity we will define the following:
 
-- `Topic` is the primary building block of Yuforium's federation model, and represents the subject matter of connection, such as as a favorite hobby or interest.
+- `Community` is the primary building block of Yuforium's federation model, and represents the origination of an `Object` type through any outbox associated with federation.  Like the `context` field of an `Object`, the definition of `Community` is intentionally vague, and represents a subject matter of connection, such as as a favorite hobby or interest, or a group of friends.  Regardless of _how_ the community is defined, the **origination** represents the motivation for a person to contribute to the community.
 
-- `Community` represents an aggregatation of people, relationships, and content.  Usually this may be centered on various topics,   It can be an explicit representation or a broader network of connected communities.
-
-- `Forum` represents a service endpoint that federates community activity and manages a set of users that can post content to the forum outbox and broadcast messages to a larger, federated community.  This type of resource may also include moderators who manage the content that appears on the instance.
+- `Forum` represents a service endpoint that federates community activity and manages a set of users that can post content to the forum outbox and broadcast messages to the larger, federated `Community`.  This type of resource may also include moderators who manage the content that appears on the instance.
 
 ## Grouping Content with the Context Field
 Yuforium uses the `context` field for federation, which is described in the Activity Streams `Object` specification as follows:
@@ -39,7 +37,7 @@ The `context` field is well suited for federating community content, because gro
   "context": [
     {
       "type": "Actor",
-      "id": "https://yuforium.com/topic/activitypub"
+      "id": "https://yuforium.com/community/activitypub"
     }
   ]
 }
