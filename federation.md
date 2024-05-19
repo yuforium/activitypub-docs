@@ -33,45 +33,22 @@ The `context` field is well suited for federating community content, because gro
   "@context": "https://www.w3.org/ns/activitystreams",
   "id": "https://textiverse.com/object/123456",
   "type": "Note",
-  "content": "Context groups objects and activities",
-  "context": [
-    {
-      "type": "Actor",
-      "id": "https://yuforium.com/community/activitypub"
-    }
-  ]
+  "content": "The context field groups objects that have a common originating purpose together, change my mind.",
+  "context": "https://yuforium.com/community/activitypub-developers"
 }
 ```
 
-In the example above, we use `Actor` here to define a topic, but it could just as easily be an additional type, such as a `Topic`:
-
-```json
-{
-  "@context": "https://yuforium.com/ns/activitypub",
-  "id": "https://textiverse.com/topic/dodgeball",
-  "type": "Topic",
-  "name": "Dodgeball",
-  "summary": "Anything related to the sport of Dodgeball"
-}
-```
-
-Multiple contexts can be used, enabling cross network federation.  The following `Note` will span across community networks that discuss dodgeball and wrenches:
+Multiple contexts can be used, enabling cross network federation.  The following `Note` can span across multiple communities.  In this example, the Note is relevant to both the `ActivityPub Developers` community on Yuforium and the `Typescript Developers` community on Textiverse:
 
 ```json
 {
   "@context": "https://www.w3.org/ns/activitystreams",
   "id": "https://textiverse.com/object/5678",
   "type": "Note",
-  "content": "If you can dodge a wrench, you can dodge a ball",
+  "content": "Hi, I am implementing an ActivityPub server in Typescript",
   "context": [
-    {
-      "type": "Topic",
-      "id": "https://yuforium.com/topic/dodgeball"
-    },
-    {
-      "type": "Topic",
-      "id": "https://yuforium.com/topic/wrenches"
-    }
+    "https://yuforium.com/community/activitypub-developers",
+    "https://textiverse.com/community/typescript-developers"
   ]
 }
 ```
